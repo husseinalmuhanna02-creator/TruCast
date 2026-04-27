@@ -1,4 +1,4 @@
-name: TruCast Final Release
+name: TruCast SHA-1 Final Success
 on: [push]
 jobs:
   build:
@@ -13,7 +13,6 @@ jobs:
       - name: 1. Install & Build Web
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor-firebase/authentication --legacy-peer-deps
-          npm install --legacy-peer-deps
           npm run build
 
       - name: 2. Setup Android
@@ -23,19 +22,19 @@ jobs:
           npx cap add android
           npx cap sync android
 
-      - name: 3. Extract SHA-1 (The Official Report)
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew signingReport | grep -A 20 "Variant: debug" || true
-
-      - name: 4. Build Final APK
+      - name: 3. Build APK First (To Create Keystore)
         run: |
           cd android
           cp ../google-services.json app/google-services.json || echo "JSON Missing"
+          chmod +x gradlew
           ./gradlew assembleDebug
+
+      - name: 4. Extract SHA-1 (The Official Report)
+        run: |
+          cd android
+          ./gradlew signingReport | grep -A 20 "Variant: debug"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-Complete-APK
+          name: TruCast-Final-Package
           path: android/app/build/outputs/apk/debug/app-debug.apk
