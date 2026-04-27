@@ -1,4 +1,4 @@
-name: Final Bulletproof Build
+name: TruCast Final Victory
 on: [push]
 jobs:
   build:
@@ -12,32 +12,47 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Build and Packaging
+      - name: Build and Fix
         run: |
-          # بناء الويب
           npm install
           if [ -f "vite.config.js" ]; then
             sed -i "s|defineConfig({|defineConfig({ base: './',|g" vite.config.js
           fi
           npm run build
           
-          # إنشاء ملف الهوية (هنا حل مشكلة Missing appId)
+          # إنشاء الهوية
           echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist","bundledWebRuntime":false}' > capacitor.config.json
           
-          # إضافة الأندرويد
+          # تجهيز الأندرويد
           npm install @capacitor/cli @capacitor/core @capacitor/android
           npx cap add android || true
           
-          # الحقن اليدوي العنيف (لضمان الحجم والعمل)
+          # الحقن اليدوي للأصول (لضمان الحجم)
           mkdir -p android/app/src/main/assets/public
-          cp -r dist/* android/app/src/main/assets/public/ || cp -r build/* android/app/src/main/assets/public/
+          cp -r dist/* android/app/src/main/assets/public/
           
-          # إصلاح الكوتلن والبناء
+          # الحل الجذري لنزاع الكوتلن (تعديل ملف build.gradle الرئيسي)
+          cat << 'GRADLE' > android/build.gradle
+          buildscript {
+              repositories { google(); mavenCentral() }
+              dependencies { classpath 'com.android.tools.build:gradle:8.2.1'; classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.22" }
+          }
+          allprojects {
+              repositories { google(); mavenCentral() }
+              configurations.all {
+                  resolutionStrategy.eachDependency { details ->
+                      if (details.requested.group == 'org.jetbrains.kotlin') {
+                          details.useVersion "1.8.22"
+                      }
+                  }
+              }
+          }
+          GRADLE
+          
           chmod +x android/gradlew
-          echo "subprojects { configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22' } } }" >> android/build.gradle
           cd android && ./gradlew assembleDebug
           
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-Final-Victory
+          name: TruCast-Final-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
