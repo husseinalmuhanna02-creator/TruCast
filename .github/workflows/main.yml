@@ -24,12 +24,12 @@ jobs:
 
       - name: 3. Inject Firebase Identity
         run: |
-          # نسخ الملف من المجلد الرئيسي إلى داخل مجلد الأندرويد
+          # التأكد من وجود ملف جوجل ونسخه للقلب النابض للتطبيق
           if [ -f "google-services.json" ]; then
             cp google-services.json android/app/google-services.json
-            echo "✅ Google Services JSON Injected"
+            echo "✅ Google Services JSON Injected Successfully"
           else
-            echo "❌ CRITICAL: google-services.json NOT FOUND"
+            echo "❌ ERROR: google-services.json missing at root"
             exit 1
           fi
 
