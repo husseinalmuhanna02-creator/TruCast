@@ -10,22 +10,20 @@ jobs:
       - uses: actions/setup-java@v4
         with: { java-version: '21', distribution: 'temurin' }
 
-      - name: Build Web
+      - name: Install & Build Web
         run: |
-          npm install --legacy-peer-deps
-          npm run build || (echo "فشل البناء البرمجي - تفقد كود App.tsx" && exit 1)
+          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor-firebase/authentication --legacy-peer-deps
+          npm run build
 
       - name: Capacitor Setup
         run: |
-          npm install @capacitor/cli @capacitor/core @capacitor/android @capacitor-firebase/authentication --legacy-peer-deps
-          rm -rf android capacitor.config.json
-          echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist"}' > capacitor.config.json
-          npx cap add android
-          cp google-services.json android/app/google-services.json
+          npx cap sync android
+          # وضع ملف الهوية google-services.json
+          cp google-services.json android/app/google-services.json || echo "Warning: JSON missing"
           mkdir -p android/app/src/main/assets/public
           cp -a dist/. android/app/src/main/assets/public/
 
-      - name: Build APK
+      - name: Build Final APK
         run: |
           echo "subprojects { configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22' } } } " >> android/build.gradle
           cd android
@@ -34,5 +32,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-Fixed-APK
+          name: TruCast-Native-Success
           path: android/app/build/outputs/apk/debug/app-debug.apk
