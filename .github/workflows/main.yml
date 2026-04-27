@@ -1,88 +1,41 @@
-name: Build TruCast APK
+name: Final Success Build
 on: [push]
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Setup Environment
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Build Web Project
+      - name: Build Everything
         run: |
           npm install
-          # تعديل Vite لضمان المسارات النسبية
+          # إصلاح Vite للمسارات النسبية ./
           if [ -f "vite.config.js" ]; then
             sed -i "s|defineConfig({|defineConfig({ base: './',|g" vite.config.js
           fi
           npm run build
           
-          # --- خطوة كشف المجلد الحقيقي ---
-          echo "فحص المجلدات الناتجة..."
-          if [ -d "dist" ]; then export DIR="dist";
-          elif [ -d "build" ]; then export DIR="build";
-          elif [ -d "www" ]; then export DIR="www";
-          else export DIR="."; fi
+          # تحديد مجلد الويب الناتج (dist أو build)
+          if [ -d "dist" ]; then export DIR="dist"; else export DIR="build"; fi
           
-          echo "المجلد المعتمد هو: $DIR"
-          echo "WEB_DIR=$DIR" >> $GITHUB_ENV
-          
-          # إظهار الملفات للتأكد من وجود index.html
-          ls -R $DIR | grep "index.html" || echo "لم يتم العثور على index.html!"
-
-      - name: Force Injection into Android
-        run: |
-          npm install @capacitor/cli @capacitor/core @capacitor/android
-          
-          # تحديث ملف الإعدادات إجبارياً
-          echo "{\"appId\":\"com.hussein.trucast\",\"appName\":\"TruCast\",\"webDir\":\"$WEB_DIR\",\"bundledWebRuntime\":false}" > capacitor.config.json
-          
-          # تهيئة أندرويد إذا لم يوجد
-          if [ ! -d "android" ]; then
-            npx cap init TruCast com.hussein.trucast --web-dir $WEB_DIR
-            npx cap add android
-          fi
-          
-          npx cap sync android
-          
-          # --- العملية القيصرية: نسخ يدوي مباشر لمجلد الأصول ---
+          # تجهيز الأندرويد ودمج الملفات يدوياً وبقوة
+          npm install @capacitor/cli @capacitor/android
+          npx cap add android || true
           mkdir -p android/app/src/main/assets/public
-          cp -r $WEB_DIR/* android/app/src/main/assets/public/
+          cp -r $DIR/* android/app/src/main/assets/public/
           
-          # فحص الحجم في السجلات (إذا كان صغيراً هنا فالمشكلة في البناء)
-          echo "حجم مجلد الأصول داخل الأندرويد:"
-          du -sh android/app/src/main/assets/public/
-
-      - name: Nuclear Fix for Kotlin Conflict
-        run: |
-          cat << 'GRADLE' >> android/build.gradle
-          subprojects {
-              configurations.all {
-                  resolutionStrategy {
-                      exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk8"
-                      exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk7"
-                      force "org.jetbrains.kotlin:kotlin-stdlib:1.8.22"
-                  }
-              }
-          }
-          GRADLE
+          # حل نزاع الكوتلن
           chmod +x android/gradlew
-
-      - name: Build Final APK
-        run: |
+          echo "subprojects { configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22' } } }" >> android/build.gradle
+          
           cd android && ./gradlew assembleDebug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-V6-Test
+          name: TruCast-Final-Success
           path: android/app/build/outputs/apk/debug/app-debug.apk
