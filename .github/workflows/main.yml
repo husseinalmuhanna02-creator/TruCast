@@ -6,10 +6,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      
+      - name: Setup Environment
+        uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
+          
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -17,34 +20,46 @@ jobs:
       - name: Build Web Project
         run: |
           npm install
-          # إصلاح Vite للمسارات النسبية
+          # تعديل Vite لضمان المسارات النسبية
           if [ -f "vite.config.js" ]; then
             sed -i "s|defineConfig({|defineConfig({ base: './',|g" vite.config.js
           fi
           npm run build
           
-          # --- الرادار: البحث عن مكان المجلد الناتج فعلياً ---
-          REAL_DIST=$(find . -name "index.html" -not -path "*/node_modules/*" -not -path "*/android/*" | head -n 1 | sed 's/\/index.html//' | sed 's/.\///')
-          echo "تم العثور على الملفات في مجلد: $REAL_DIST"
-          echo "ACTUAL_WEB_DIR=$REAL_DIST" >> $GITHUB_ENV
+          # --- خطوة كشف المجلد الحقيقي ---
+          echo "فحص المجلدات الناتجة..."
+          if [ -d "dist" ]; then export DIR="dist";
+          elif [ -d "build" ]; then export DIR="build";
+          elif [ -d "www" ]; then export DIR="www";
+          else export DIR="."; fi
+          
+          echo "المجلد المعتمد هو: $DIR"
+          echo "WEB_DIR=$DIR" >> $GITHUB_ENV
+          
+          # إظهار الملفات للتأكد من وجود index.html
+          ls -R $DIR | grep "index.html" || echo "لم يتم العثور على index.html!"
 
-      - name: Force Asset Injection
+      - name: Force Injection into Android
         run: |
           npm install @capacitor/cli @capacitor/core @capacitor/android
           
-          # إجبار إعدادات Capacitor على المجلد المكتشف
-          echo "{\"appId\":\"com.hussein.trucast\",\"appName\":\"TruCast\",\"webDir\":\"$ACTUAL_WEB_DIR\",\"bundledWebRuntime\":false}" > capacitor.config.json
+          # تحديث ملف الإعدادات إجبارياً
+          echo "{\"appId\":\"com.hussein.trucast\",\"appName\":\"TruCast\",\"webDir\":\"$WEB_DIR\",\"bundledWebRuntime\":false}" > capacitor.config.json
           
-          npx cap init TruCast com.hussein.trucast --web-dir $ACTUAL_WEB_DIR || true
-          if [ ! -d "android" ]; then npx cap add android; fi
+          # تهيئة أندرويد إذا لم يوجد
+          if [ ! -d "android" ]; then
+            npx cap init TruCast com.hussein.trucast --web-dir $WEB_DIR
+            npx cap add android
+          fi
+          
           npx cap sync android
           
-          # الحقن اليدوي العنيف للملفات داخل الأندرويد
+          # --- العملية القيصرية: نسخ يدوي مباشر لمجلد الأصول ---
           mkdir -p android/app/src/main/assets/public
-          cp -r $ACTUAL_WEB_DIR/* android/app/src/main/assets/public/
+          cp -r $WEB_DIR/* android/app/src/main/assets/public/
           
-          # فحص الحجم للتأكد قبل البناء النهائي
-          echo "حجم الملفات المحقونة داخل الأندرويد:"
+          # فحص الحجم في السجلات (إذا كان صغيراً هنا فالمشكلة في البناء)
+          echo "حجم مجلد الأصول داخل الأندرويد:"
           du -sh android/app/src/main/assets/public/
 
       - name: Nuclear Fix for Kotlin Conflict
@@ -62,12 +77,12 @@ jobs:
           GRADLE
           chmod +x android/gradlew
 
-      - name: Build APK
+      - name: Build Final APK
         run: |
           cd android && ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: TruCast-Final-Success
+          name: TruCast-V6-Test
           path: android/app/build/outputs/apk/debug/app-debug.apk
