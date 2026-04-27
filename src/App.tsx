@@ -12752,7 +12752,7 @@ function AppContent() {
         ? new GoogleAuthProvider() 
         : new FacebookAuthProvider();
       const googleResult = await FirebaseAuthentication.signInWithGoogle();
-    const googleCredential = GoogleAuthProvider.credential(googleResult.credential.idToken);
+    const googleCredential = GoogleAuthProvider.credential(googleResult.credential?.idToken);
     await signInWithCredential(auth, googleCredential);
     } catch (err: any) {
       if (err.code === 'auth/unauthorized-domain') {
