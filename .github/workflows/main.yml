@@ -25,7 +25,8 @@ jobs:
       - name: Build APK
         run: |
           chmod +x android/gradlew
-          echo "configurations.all { resolutionStrategy.force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22' }" >> android/build.gradle
+          # إجبار جميع مكتبات كوتلن على نسخة موحدة لإنهاء النزاع
+          echo "subprojects { configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22' } } }" >> android/build.gradle
           npx cap sync android
           cd android && ./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
