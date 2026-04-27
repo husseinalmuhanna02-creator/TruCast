@@ -16,31 +16,41 @@ jobs:
           npm run build
           if [ -f "dist/index.html" ]; then
             sed -i 's|="/|="./|g' dist/index.html
-            sed -i "s|='/|='./|g" dist/index.html
+            sed -i "s|='/|='./|g' dist/index.html
           fi
 
-      - name: Capacitor Android Setup
+      - name: Capacitor & Keystore Protection
         run: |
+          # حفظ نسخة من البصمة قبل مسح المجلد
+          cp android/app/debug.keystore ./backup_debug.keystore || echo "No keystore to backup"
           npm install @capacitor/cli @capacitor/core @capacitor/android
           rm -rf android capacitor.config.json
           echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist","bundledWebRuntime":false}' > capacitor.config.json
           npx cap add android
           mkdir -p android/app/src/main/assets/public
           cp -a dist/. android/app/src/main/assets/public/
+          # إعادة البصمة لمكانها الصحيح
+          cp ./backup_debug.keystore android/app/debug.keystore || echo "Keystore restored"
 
-      - name: Inject Keystore
+      - name: Fix Kotlin Duplicates & Build APK
         run: |
-          # نقل ملف البصمة من مشروعك إلى مكان البناء
-          mkdir -p android/app/
-          cp android/app/debug.keystore android/app/debug.keystore || echo "Keystore already exists"
-
-      - name: Build APK
-        run: |
+          # إضافة حل مشكلة تكرار مكتبات Kotlin (قوات حفظ السلام)
+          cat << 'GRADLE' >> android/build.gradle
+          subprojects {
+              configurations.all {
+                  resolutionStrategy {
+                      force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'
+                      force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
+                      force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
+                  }
+              }
+          }
+          GRADLE
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-Pro-APK
+          name: TruCast-Verified-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
