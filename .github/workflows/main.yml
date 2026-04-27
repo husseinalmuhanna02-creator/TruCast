@@ -1,4 +1,4 @@
-name: TruCast SHA-1 Extraction
+name: TruCast SHA-1 Final Success
 on: [push]
 jobs:
   build:
@@ -10,29 +10,33 @@ jobs:
       - uses: actions/setup-java@v4
         with: { java-version: '21', distribution: 'temurin' }
 
-      - name: 1. Install & Build
+      - name: 1. Install & Build Web
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor-firebase/authentication --legacy-peer-deps
+          npm install @capacitor/core @capacitor/cli @capacitor-firebase/authentication --legacy-peer-deps
           npm run build
 
-      - name: 2. Sync Android
+      - name: 2. Extract SHA-1 (DIRECT ACCESS)
+        run: |
+          echo "--- YOUR SHA-1 KEY IS BELOW ---"
+          # استخراج البصمة مباشرة من مفتاح أندرويد الافتراضي في السيرفر
+          keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android | grep "SHA1:"
+          echo "-------------------------------"
+
+      - name: 3. Create Android & Sync
         run: |
           echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist","plugins":{"FirebaseAuthentication":{"skipNativeAuth":false,"providers":["google.com"]}}}' > capacitor.config.json
           npx cap add android || true
           npx cap sync android
 
-      - name: 3. Extract SHA-1 (The Official Way)
+      - name: 4. Build Final APK
         run: |
           cd android
+          cp ../google-services.json app/google-services.json || echo "Warning: JSON missing"
+          echo "subprojects { configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22' } } } " >> build.gradle
           chmod +x gradlew
-          ./gradlew signingReport | grep -A 5 "Variant: debug"
-
-      - name: 4. Final APK
-        run: |
-          cd android
           ./gradlew assembleDebug
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-With-SHA1-In-Logs
+          name: TruCast-With-SHA1-Ready
           path: android/app/build/outputs/apk/debug/app-debug.apk
