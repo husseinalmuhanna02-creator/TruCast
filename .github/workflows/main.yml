@@ -1,4 +1,4 @@
-name: TruCast Absolute Final
+name: TruCast X-Ray Debugger
 on: [push]
 jobs:
   build:
@@ -10,59 +10,40 @@ jobs:
       - uses: actions/setup-java@v4
         with: { java-version: '21', distribution: 'temurin' }
 
-      - name: 1. Build Web & Force Paths
+      - name: Build Web & Inject Eruda Debugger
         run: |
           npm install
           npm run build
           
-          # تعديل عنيف ومباشر على ملف index.html لقتل الشاشة البيضاء تماماً
+          # تصحيح المسارات جبرياً
           if [ -f "dist/index.html" ]; then
             sed -i 's|="/|="./|g' dist/index.html
             sed -i "s|='/|='./|g" dist/index.html
-            echo "تم تعديل المسارات بنجاح!"
+            
+            # حقن أداة فحص الأخطاء (الأشعة السينية) داخل التطبيق
+            sed -i 's|</head>|<script src="https://cdn.jsdelivr.net/npm/eruda"></script><script>eruda.init();</script></head>|' dist/index.html
+            echo "تم حقن أداة Eruda بنجاح!"
           fi
 
-      - name: 2. Capacitor & Asset Injection
+      - name: Capacitor Injection
         run: |
           npm install @capacitor/cli @capacitor/core @capacitor/android
-          
-          # تنظيف كامل وإعادة تهيئة
           rm -rf android capacitor.config.json
           echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist","bundledWebRuntime":false}' > capacitor.config.json
-          
           npx cap add android
-          
-          # النسخ الجبري لكل الملفات (النقطة بعد dist تعني نسخ المحتوى بالكامل)
           mkdir -p android/app/src/main/assets/public
           cp -a dist/. android/app/src/main/assets/public/
-          
-          # طباعة حجم الملفات المدمجة للتأكد
-          echo "--- حجم مجلد الأصول داخل الأندرويد ---"
-          du -sh android/app/src/main/assets/public
 
-      - name: 3. Kotlin Shield & Build APK
+      - name: Build APK
         run: |
           cat << 'GRADLE' >> android/build.gradle
-          subprojects {
-              configurations.all {
-                  resolutionStrategy {
-                      force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'
-                      force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
-                      force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
-                  }
-              }
-          }
+          subprojects { configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22' } } }
           GRADLE
-          
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
-          
-          # طباعة الحجم النهائي للتطبيق
-          echo "--- حجم تطبيق APK النهائي ---"
-          ls -lh app/build/outputs/apk/debug/app-debug.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-Massive-APK
+          name: TruCast-Debug-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
