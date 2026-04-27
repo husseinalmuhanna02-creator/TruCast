@@ -1,4 +1,4 @@
-name: TruCast X-Ray Debugger
+name: TruCast Production Build
 on: [push]
 jobs:
   build:
@@ -10,19 +10,13 @@ jobs:
       - uses: actions/setup-java@v4
         with: { java-version: '21', distribution: 'temurin' }
 
-      - name: Build Web & Inject Eruda Debugger
+      - name: Build Web
         run: |
           npm install
           npm run build
-          
-          # تصحيح المسارات جبرياً
           if [ -f "dist/index.html" ]; then
             sed -i 's|="/|="./|g' dist/index.html
             sed -i "s|='/|='./|g" dist/index.html
-            
-            # حقن أداة فحص الأخطاء (الأشعة السينية) داخل التطبيق
-            sed -i 's|</head>|<script src="https://cdn.jsdelivr.net/npm/eruda"></script><script>eruda.init();</script></head>|' dist/index.html
-            echo "تم حقن أداة Eruda بنجاح!"
           fi
 
       - name: Capacitor Injection
@@ -45,5 +39,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-Debug-APK
+          name: TruCast-Final-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
