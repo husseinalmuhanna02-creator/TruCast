@@ -15,8 +15,9 @@ jobs:
           node-version: 20
       - run: npm install
       - run: npm run build
-      - run: |
-          npm install @capacitor/android
+      - name: Setup Capacitor
+        run: |
+          npm install @capacitor/cli @capacitor/core @capacitor/android
           if [ ! -d "android" ]; then
             npx cap init TruCast com.hussein.trucast --web-dir dist
             npx cap add android
