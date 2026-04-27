@@ -15,21 +15,21 @@ jobs:
           npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor-firebase/authentication --legacy-peer-deps
           npm run build
 
-      - name: 2. Setup Android
+      - name: 2. Setup Android Project
         run: |
           rm -rf android
           echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist","plugins":{"FirebaseAuthentication":{"skipNativeAuth":false,"providers":["google.com"]}}}' > capacitor.config.json
           npx cap add android
           npx cap sync android
 
-      - name: 3. Verify & Copy JSON
+      - name: 3. Inject Firebase Identity
         run: |
-          # التأكد من وجود الملف قبل النسخ لعدم تكرار الخطأ السابق
+          # نسخ الملف من المجلد الرئيسي إلى داخل مجلد الأندرويد
           if [ -f "google-services.json" ]; then
             cp google-services.json android/app/google-services.json
-            echo "✅ JSON Copied Successfully"
+            echo "✅ Google Services JSON Injected"
           else
-            echo "❌ JSON MISSING AT ROOT"
+            echo "❌ CRITICAL: google-services.json NOT FOUND"
             exit 1
           fi
 
@@ -41,5 +41,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-SUCCESS-VERSION
+          name: TruCast-Success-Build
           path: android/app/build/outputs/apk/debug/app-debug.apk
