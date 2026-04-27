@@ -17,26 +17,34 @@ jobs:
       - name: Build Web Project
         run: |
           npm run build
-          # تحديد المجلد الناتج بدقة
+          # تحديد المجلد الناتج تلقائياً
           BUILD_DIR=$(if [ -d "dist" ]; then echo "dist"; elif [ -d "build" ]; then echo "build"; else echo "www"; fi)
           if [ "$BUILD_DIR" != "dist" ]; then mv $BUILD_DIR dist; fi
-          # إصلاح المسارات في index.html لضمان القراءة في الأندرويد
+          
+          # --- مجس الاختبار: إضافة نص أحمر لنعرف هل الملف يعمل أم لا ---
+          sed -i 's/<body>/<body><h1 style="color:red;text-align:center;margin-top:50px">TruCast is Loading...<\/h1>/' dist/index.html
+          
+          # إصلاح المسارات (السر الحقيقي للبياض)
           sed -i 's/src="\//src="/g' dist/index.html
           sed -i 's/href="\//href="/g' dist/index.html
-      - name: Setup Capacitor Config
-        run: |
-          # إجبار ملف الإعدادات على قراءة مجلد dist
-          sed -i 's/"webDir": ".*"/"webDir": "dist"/g' capacitor.config.json || echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist","bundledWebRuntime":false}' > capacitor.config.json
-      - name: Build APK
+          sed -i 's/src='\//src='/g' dist/index.html
+          sed -i 's/href='\//href='/g' dist/index.html
+
+      - name: Setup Capacitor
         run: |
           npm install @capacitor/cli @capacitor/core @capacitor/android
-          npx cap init TruCast com.hussein.trucast --web-dir dist || true
-          npx cap add android || true
+          # إجبار الإعدادات على مجلد dist
+          echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist","bundledWebRuntime":false}' > capacitor.config.json
+          npx cap sync android || (npx cap init TruCast com.hussein.trucast --web-dir dist && npx cap add android)
+
+      - name: Build APK
+        run: |
           chmod +x android/gradlew
-          echo "subprojects { configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22' } } }" >> android/build.gradle
+          echo "subprojects { configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22' } } }" >> android/build.gradle
           npx cap sync android
           cd android && ./gradlew assembleDebug
+
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-Final-APK
+          name: TruCast-Debug-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
