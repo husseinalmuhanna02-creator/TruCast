@@ -202,7 +202,7 @@ const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
 async function moderateMessage(text: string): Promise<{ allowed: boolean, warning?: string }> {
   // 1. Quick local check for common bad words (Pre-filtering)
