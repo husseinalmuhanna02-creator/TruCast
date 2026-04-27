@@ -150,7 +150,7 @@ import {
   FacebookAuthProvider,
   onAuthStateChanged, 
   signOut,
-  createUserWithEmailAndPassword,
+  createUserWithEmailAndPassword, sendEmailVerification,
   signInWithEmailAndPassword,
   RecaptchaVerifier,
   signInWithPhoneNumber,
@@ -12786,7 +12786,7 @@ function AppContent() {
     setIsAuthLoading(true);
     try {
       if (isRegistering) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password); await sendEmailVerification(userCredential.user); alert("تم إرسال رابط التأكيد إلى بريدك الإلكتروني. يرجى التحقق منه.");
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }

@@ -1,4 +1,4 @@
-name: TruCast Production Build
+name: TruCast Verified Build
 on: [push]
 jobs:
   build:
@@ -19,7 +19,7 @@ jobs:
             sed -i "s|='/|='./|g" dist/index.html
           fi
 
-      - name: Capacitor Injection
+      - name: Capacitor Android Setup
         run: |
           npm install @capacitor/cli @capacitor/core @capacitor/android
           rm -rf android capacitor.config.json
@@ -28,16 +28,19 @@ jobs:
           mkdir -p android/app/src/main/assets/public
           cp -a dist/. android/app/src/main/assets/public/
 
+      - name: Inject Keystore
+        run: |
+          # نقل ملف البصمة من مشروعك إلى مكان البناء
+          mkdir -p android/app/
+          cp android/app/debug.keystore android/app/debug.keystore || echo "Keystore already exists"
+
       - name: Build APK
         run: |
-          cat << 'GRADLE' >> android/build.gradle
-          subprojects { configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22' } } }
-          GRADLE
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-Final-APK
+          name: TruCast-Pro-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
