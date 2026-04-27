@@ -17,17 +17,22 @@ jobs:
 
       - name: 2. Sync Android
         run: |
+          echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist","plugins":{"FirebaseAuthentication":{"skipNativeAuth":false,"providers":["google.com"]}}}' > capacitor.config.json
           npx cap add android || true
           npx cap sync android
 
-      - name: 3. Extract SHA-1 (The Missing Piece)
+      - name: 3. Extract SHA-1 (The Official Way)
         run: |
-          echo "--- YOUR SHA-1 KEY IS BELOW ---"
-          keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android | grep "SHA1:"
-          echo "-------------------------------"
+          cd android
+          chmod +x gradlew
+          ./gradlew signingReport | grep -A 5 "Variant: debug"
 
       - name: 4. Final APK
         run: |
           cd android
-          chmod +x gradlew
           ./gradlew assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TruCast-With-SHA1-In-Logs
+          path: android/app/build/outputs/apk/debug/app-debug.apk
