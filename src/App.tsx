@@ -12786,9 +12786,9 @@ function AppContent() {
     setIsAuthLoading(true);
     try {
       if (isRegistering) {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password); await sendEmailVerification(userCredential.user); alert("تم إرسال رابط التأكيد إلى بريدك الإلكتروني. يرجى التحقق منه.");
+    const userCred = await createUserWithEmailAndPassword(auth, email, password); await sendEmailVerification(userCred.user); await auth.signOut(); alert("تم إرسال رابط التأكيد. لن تتمكن من الدخول إلا بعد تفعيل الحساب من بريدك.");
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+    const loginCred = await signInWithEmailAndPassword(auth, email, password); if (!loginCred.user.emailVerified) { await auth.signOut(); alert("عذراً، بريدك الإلكتروني غير مؤكد. يرجى الضغط على الرابط المرسل إليك أولاً."); return; }
       }
     } catch (err: any) {
       if (err.code === 'auth/unauthorized-domain') {
