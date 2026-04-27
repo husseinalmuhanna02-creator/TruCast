@@ -1,4 +1,4 @@
-name: TruCast Ultimate Victory
+name: TruCast Final Victory
 on: [push]
 jobs:
   build:
@@ -10,35 +10,38 @@ jobs:
       - uses: actions/setup-java@v4
         with: { java-version: '21', distribution: 'temurin' }
 
-      - name: Install All Dependencies
+      - name: 1. Install Dependencies
         run: |
-          # تثبيت كل المكتبات الأساسية والفرعية دفعة واحدة لضمان عدم نقص أي ملف
           npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor-firebase/authentication --legacy-peer-deps
           npm install --legacy-peer-deps
 
-      - name: Build Web Assets
+      - name: 2. Build Web Assets
         run: npm run build
 
-      - name: Capacitor Sync
+      - name: 3. Create Clean Android Project
         run: |
+          # مسح أي مجلد أندرويد قديم لضمان بناء نظيف
+          rm -rf android
           echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist"}' > capacitor.config.json
-          npx cap add android || true
+          # إضافة الأندرويد من جديد وبقوة
+          npx cap add android
           npx cap sync android
 
-      - name: Inject Identity & Assets
+      - name: 4. Inject Google Identity
         run: |
           cp google-services.json android/app/google-services.json || echo "JSON Missing"
           mkdir -p android/app/src/main/assets/public
           cp -a dist/. android/app/src/main/assets/public/
 
-      - name: Build APK
+      - name: 5. Build Final APK
         run: |
           echo "subprojects { configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22' } } } " >> android/build.gradle
           cd android
+          # الآن سيعثر السيرفر على gradlew حتماً
           chmod +x gradlew
           ./gradlew assembleDebug
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-Verified-Final
+          name: TruCast-Official-Final
           path: android/app/build/outputs/apk/debug/app-debug.apk
