@@ -1,4 +1,4 @@
-name: TruCast Final Victory Build
+name: TruCast Final Victory
 on: [push]
 jobs:
   build:
@@ -13,25 +13,33 @@ jobs:
       - name: 1. Install & Build Web
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor-firebase/authentication --legacy-peer-deps
-          npm install --legacy-peer-deps
           npm run build
 
-      - name: 2. Setup Android Clean
+      - name: 2. Setup Android
         run: |
           rm -rf android
           echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist","plugins":{"FirebaseAuthentication":{"skipNativeAuth":false,"providers":["google.com"]}}}' > capacitor.config.json
           npx cap add android
           npx cap sync android
 
-      - name: 3. Build Final APK
+      - name: 3. Verify & Copy JSON
+        run: |
+          # التأكد من وجود الملف قبل النسخ لعدم تكرار الخطأ السابق
+          if [ -f "google-services.json" ]; then
+            cp google-services.json android/app/google-services.json
+            echo "✅ JSON Copied Successfully"
+          else
+            echo "❌ JSON MISSING AT ROOT"
+            exit 1
+          fi
+
+      - name: 4. Build Final APK
         run: |
           cd android
-          # استخدام الملف الجديد الذي قمت برفعه
-          cp ../google-services.json app/google-services.json
           chmod +x gradlew
           ./gradlew assembleDebug
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-SUCCESS-FINAL
+          name: TruCast-SUCCESS-VERSION
           path: android/app/build/outputs/apk/debug/app-debug.apk
