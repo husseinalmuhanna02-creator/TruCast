@@ -1,3 +1,4 @@
+import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import * as React from 'react';
 import { useState, useEffect, useMemo, useRef } from 'react';
 // import { io, Socket } from 'socket.io-client';
@@ -12750,7 +12751,7 @@ function AppContent() {
       const provider = providerName === 'google' 
         ? new GoogleAuthProvider() 
         : new FacebookAuthProvider();
-      await signInWithPopup(auth, provider);
+      await FirebaseAuthentication.signInWithGoogle({ mode: "none" });
     } catch (err: any) {
       if (err.code === 'auth/unauthorized-domain') {
         const domainMsg = language === 'ar' 

@@ -1,4 +1,4 @@
-name: TruCast Native Google Build
+name: TruCast Native Pro Build
 on: [push]
 jobs:
   build:
@@ -15,19 +15,18 @@ jobs:
           npm install
           npm run build
 
-      - name: Capacitor Android Setup
+      - name: Capacitor Native Setup
         run: |
           npm install @capacitor/cli @capacitor/core @capacitor/android @capacitor-firebase/authentication
           rm -rf android capacitor.config.json
           echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist"}' > capacitor.config.json
           npx cap add android
-          # وضع ملف الهوية google-services.json في مكانه الصحيح برمجياً
-          cp google-services.json android/app/google-services.json || echo "Warning: JSON missing"
-          # تجهيز الملفات والبصمة الرقمية
+          # حقن الهوية والبصمة
+          cp google-services.json android/app/google-services.json
           mkdir -p android/app/src/main/assets/public
           cp -a dist/. android/app/src/main/assets/public/
 
-      - name: Fix Kotlin & Build APK
+      - name: Build APK
         run: |
           echo "subprojects { configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22' } } } " >> android/build.gradle
           cd android
@@ -36,5 +35,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-Native-APK
+          name: TruCast-Native-Pro
           path: android/app/build/outputs/apk/debug/app-debug.apk
