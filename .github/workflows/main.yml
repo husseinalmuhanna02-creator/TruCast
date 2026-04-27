@@ -1,4 +1,4 @@
-name: TruCast Final Victory Build
+name: TruCast Ultimate Victory
 on: [push]
 jobs:
   build:
@@ -10,25 +10,24 @@ jobs:
       - uses: actions/setup-java@v4
         with: { java-version: '21', distribution: 'temurin' }
 
-      - name: Install Dependencies
+      - name: Install All Dependencies
         run: |
+          # تثبيت كل المكتبات الأساسية والفرعية دفعة واحدة لضمان عدم نقص أي ملف
+          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor-firebase/authentication --legacy-peer-deps
           npm install --legacy-peer-deps
-          # إجبار تثبيت مكتبة جوجل قبل بناء الويب
-          npm install @capacitor-firebase/authentication --legacy-peer-deps
 
       - name: Build Web Assets
         run: npm run build
 
-      - name: Capacitor Android Sync
+      - name: Capacitor Sync
         run: |
-          # التأكد من وجود ملف الإعدادات
           echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist"}' > capacitor.config.json
           npx cap add android || true
           npx cap sync android
 
-      - name: Inject Google Identity & Keystore
+      - name: Inject Identity & Assets
         run: |
-          cp google-services.json android/app/google-services.json || echo "Warning: JSON missing"
+          cp google-services.json android/app/google-services.json || echo "JSON Missing"
           mkdir -p android/app/src/main/assets/public
           cp -a dist/. android/app/src/main/assets/public/
 
@@ -41,5 +40,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-Final-Success
+          name: TruCast-Verified-Final
           path: android/app/build/outputs/apk/debug/app-debug.apk
