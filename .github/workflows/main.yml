@@ -1,0 +1,39 @@
+name: Build TruCast APK
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Web Project
+        run: npm run build
+
+      - name: Setup Capacitor
+        run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          if [ ! -d "android" ]; then
+            npx cap init TruCast com.hussein.trucast --web-dir dist
+            npx cap add android
+          fi
+
+      - name: Build Android APK
+        run: |
+          npx cap sync android
+          cd android && ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: TruCast-Release-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
