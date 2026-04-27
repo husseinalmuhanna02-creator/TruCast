@@ -147,7 +147,7 @@ import {
 } from 'firebase/firestore';
 import { 
   signInWithPopup, 
-  GoogleAuthProvider, 
+  GoogleAuthProvider, signInWithCredential, 
   FacebookAuthProvider,
   onAuthStateChanged, 
   signOut,
@@ -12751,7 +12751,9 @@ function AppContent() {
       const provider = providerName === 'google' 
         ? new GoogleAuthProvider() 
         : new FacebookAuthProvider();
-      await FirebaseAuthentication.signInWithGoogle({ mode: "none" });
+      const googleResult = await FirebaseAuthentication.signInWithGoogle();
+    const googleCredential = GoogleAuthProvider.credential(googleResult.credential.idToken);
+    await signInWithCredential(auth, googleCredential);
     } catch (err: any) {
       if (err.code === 'auth/unauthorized-domain') {
         const domainMsg = language === 'ar' 
