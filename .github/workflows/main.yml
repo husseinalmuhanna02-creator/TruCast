@@ -1,4 +1,4 @@
-name: TruCast Verified Build
+name: TruCast Native Google Build
 on: [push]
 jobs:
   build:
@@ -14,44 +14,27 @@ jobs:
         run: |
           npm install
           npm run build
-          if [ -f "dist/index.html" ]; then
-            sed -i "s|=\"/|=\"./|g" dist/index.html
-            sed -i "s|='/|='./|g" dist/index.html
-          fi
 
-      - name: Capacitor & Keystore Protection
+      - name: Capacitor Android Setup
         run: |
-          # حفظ نسخة من مفتاح البصمة
-          cp android/app/debug.keystore ./backup_debug.keystore || echo "No keystore"
-          npm install @capacitor/cli @capacitor/core @capacitor/android
+          npm install @capacitor/cli @capacitor/core @capacitor/android @capacitor-firebase/authentication
           rm -rf android capacitor.config.json
-          echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist","bundledWebRuntime":false}' > capacitor.config.json
+          echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist"}' > capacitor.config.json
           npx cap add android
+          # وضع ملف الهوية google-services.json في مكانه الصحيح برمجياً
+          cp google-services.json android/app/google-services.json || echo "Warning: JSON missing"
+          # تجهيز الملفات والبصمة الرقمية
           mkdir -p android/app/src/main/assets/public
           cp -a dist/. android/app/src/main/assets/public/
-          # استعادة المفتاح
-          mkdir -p android/app
-          cp ./backup_debug.keystore android/app/debug.keystore || echo "Keystore restored"
 
       - name: Fix Kotlin & Build APK
         run: |
-          # إضافة كود حل تضارب المكتبات بشكل منظم
-          cat << 'GRADLE' >> android/build.gradle
-          subprojects {
-              configurations.all {
-                  resolutionStrategy {
-                      force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'
-                      force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
-                      force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
-                  }
-              }
-          }
-          GRADLE
+          echo "subprojects { configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22' } } } " >> android/build.gradle
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-Verified-APK
+          name: TruCast-Native-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
