@@ -1,0 +1,4 @@
+1959:function LiveStream({ room, allUsers, user, profile, isHost, chatModeratorIds, chatOwnerId, onClose, onReport, quotaExceeded, setConfirmationModal, t: propT, language, liveSubscriptionIds, handleToggleLiveSubscription }: { room: LiveRoom, allUsers: UserProfile[], user: FirebaseUser, profile: UserProfile | null, isHost: boolean, chatModeratorIds: string[], chatOwnerId: string, onClose: () => void, onReport: (id: string, type: string) => void, quotaExceeded: boolean, setConfirmationModal: (modal: any) => void, t: any, language: string, liveSubscriptionIds: Set<string>, handleToggleLiveSubscription: (uid: string) => void }) {
+2438:      console.error("Error toggling mute in LiveStream:", err);
+2479:      console.error("Error toggling camera in LiveStream:", err);
+14696:          <LiveStream 

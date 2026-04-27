@@ -1,0 +1,498 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user profile information and social stats.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique identifier for the user (Firebase Auth UID)." },
+        "username": { "type": "string", "description": "User's unique handle (e.g., @johndoe)." },
+        "displayName": { "type": "string", "description": "User's full name or handle." },
+        "photoURL": { "type": "string", "format": "url", "description": "URL to the user's profile picture." },
+        "bio": { "type": "string", "description": "Short biography of the user." },
+        "followersCount": { "type": "integer", "description": "Total number of followers." },
+        "followingCount": { "type": "integer", "description": "Total number of users followed." },
+        "isPrivate": { "type": "boolean", "description": "Whether the profile is private." },
+        "role": { "type": "string", "enum": ["user", "admin", "moderator"], "description": "User's role for access control." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp." }
+      },
+      "required": ["uid", "displayName", "createdAt"]
+    },
+    "PrivateUser": {
+      "title": "Private User Data",
+      "description": "Stores sensitive user information like email and phone.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "phoneNumber": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Post": {
+      "title": "Social Post",
+      "description": "Represents a post created by a user.",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string", "description": "Unique identifier for the post." },
+        "authorId": { "type": "string", "description": "UID of the user who created the post." },
+        "content": { "type": "string", "description": "Text content of the post." },
+        "mediaUrl": { "type": "string", "format": "url", "description": "Optional image or video URL." },
+        "mediaType": { "type": "string", "enum": ["text", "image", "video"], "description": "Type of media attached." },
+        "likesCount": { "type": "integer", "description": "Total number of likes." },
+        "commentsCount": { "type": "integer", "description": "Total number of comments." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Post creation timestamp." }
+      },
+      "required": ["postId", "authorId", "content", "createdAt"]
+    },
+    "Comment": {
+      "title": "Post Comment",
+      "description": "A comment on a specific post.",
+      "type": "object",
+      "properties": {
+        "commentId": { "type": "string" },
+        "postId": { "type": "string" },
+        "authorId": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["commentId", "postId", "authorId", "text", "createdAt"]
+    },
+    "LiveRoom": {
+      "title": "Live Stream Room",
+      "description": "Metadata for an active or past live stream.",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string" },
+        "hostId": { "type": "string", "description": "UID of the broadcaster." },
+        "hostName": { "type": "string" },
+        "hostPhoto": { "type": "string", "format": "url" },
+        "title": { "type": "string", "description": "Title of the stream." },
+        "description": { "type": "string" },
+        "quality": { "type": "string", "enum": ["480p", "720p", "1080p"] },
+        "status": { "type": "string", "enum": ["active", "ended", "scheduled"] },
+        "viewerCount": { "type": "integer", "description": "Current number of viewers." },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "endedAt": { "type": "string", "format": "date-time" },
+        "thumbnailUrl": { "type": "string", "format": "url" },
+        "placeholderUrl": { "type": "string", "format": "url" },
+        "isCameraOff": { "type": "boolean" },
+        "type": { "type": "string", "enum": ["broadcast", "group_call"] },
+        "watchTogetherEnabled": { "type": "boolean" },
+        "chatId": { "type": "string" },
+        "participants": { "type": "array", "items": { "type": "string" } },
+        "guests": { 
+          "type": "array", 
+          "items": {
+            "type": "object",
+            "properties": {
+              "uid": { "type": "string" },
+              "name": { "type": "string" },
+              "photo": { "type": "string" },
+              "isMuted": { "type": "boolean" },
+              "isCameraOff": { "type": "boolean" },
+              "status": { "type": "string", "enum": ["pending", "accepted", "rejected"] },
+              "joinedAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "mutedUsers": { "type": "array", "items": { "type": "string" } },
+        "blockedUsers": { "type": "array", "items": { "type": "string" } },
+        "truthMode": {
+          "type": "object",
+          "properties": {
+            "active": { "type": "boolean" },
+            "expiresAt": { "type": "string", "format": "date-time" },
+            "participantLabels": { "type": "object" }
+          }
+        },
+        "reactions": {
+          "type": "array",
+          "items": { "$ref": "LiveReaction" },
+          "description": "Recent live reactions sent by viewers."
+        }
+      },
+      "required": ["roomId", "hostId", "title", "status", "startedAt", "quality"]
+    },
+    "Chat": {
+      "title": "Chat Conversation",
+      "description": "Metadata for a direct message conversation between two users.",
+      "type": "object",
+      "properties": {
+        "chatId": { "type": "string" },
+        "participants": { "type": "array", "items": { "type": "string" }, "description": "Array of UIDs in the chat." },
+        "lastMessage": { "type": "string" },
+        "lastUpdate": { "type": "string", "format": "date-time" },
+        "type": { "type": "string", "enum": ["direct", "group", "channel"] },
+        "groupName": { "type": "string" },
+        "groupPhoto": { "type": "string" },
+        "channelName": { "type": "string" },
+        "channelDescription": { "type": "string" },
+        "channelPhoto": { "type": "string" },
+        "subscribersCount": { "type": "integer" },
+        "isVerified": { "type": "boolean" },
+        "createdBy": { "type": "string" },
+        "ownerId": { "type": "string", "description": "UID of the creator/owner of the group/channel." },
+        "moderators": { "type": "array", "items": { "type": "string" }, "description": "Legacy array of moderator UIDs." },
+        "adminPermissions": { 
+          "type": "object", 
+          "description": "Map of UID to AdminPermissions object.",
+          "additionalProperties": { "$ref": "AdminPermissions" }
+        },
+        "background": { "type": "string" },
+        "permissions": { "type": "object" },
+        "typing": { "type": "object" },
+        "lastRead": { "type": "object" },
+        "truthMode": {
+          "type": "object",
+          "properties": {
+            "active": { "type": "boolean" },
+            "expiresAt": { "type": "string", "format": "date-time" },
+            "participantLabels": { "type": "object" }
+          }
+        },
+        "pinnedMessageId": { "type": "string" },
+        "backgroundPattern": { "type": "string" },
+        "blockedUsers": { "type": "array", "items": { "type": "string" } },
+        "mutedBy": { "type": "array", "items": { "type": "string" } },
+        "lastSenderId": { "type": "string" }
+      },
+      "required": ["chatId", "participants", "lastUpdate"]
+    },
+    "AdminPermissions": {
+      "title": "Administrator Permissions",
+      "description": "Granular permissions for a group administrator.",
+      "type": "object",
+      "properties": {
+        "canChangeInfo": { "type": "boolean" },
+        "canDeleteMessages": { "type": "boolean" },
+        "canBanUsers": { "type": "boolean" },
+        "canInviteUsers": { "type": "boolean" },
+        "canPinMessages": { "type": "boolean" },
+        "canManageGroupCall": { "type": "boolean" },
+        "canAddAdmins": { "type": "boolean" }
+      }
+    },
+    "Message": {
+      "title": "Chat Message",
+      "description": "An individual message within a chat.",
+      "type": "object",
+      "properties": {
+        "messageId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "read": { "type": "boolean", "description": "Whether the message has been read by the recipient." }
+      },
+      "required": ["messageId", "senderId", "text", "timestamp"]
+    },
+    "Story": {
+      "title": "User Story",
+      "description": "A short-lived image or video shared by a user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "url": { "type": "string", "format": "url" },
+        "thumbnailUrl": { "type": "string", "format": "url" },
+        "type": { "type": "string", "enum": ["image", "video", "live"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "username", "url", "type", "createdAt"]
+    },
+    "StoryView": {
+      "title": "Story View Record",
+      "description": "A record of a user viewing a specific story.",
+      "type": "object",
+      "properties": {
+        "viewerId": { "type": "string" },
+        "viewerName": { "type": "string" },
+        "viewerPhoto": { "type": "string", "format": "url" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["viewerId", "viewerName", "timestamp"]
+    },
+    "Reel": {
+      "title": "Short Video (Reel)",
+      "description": "A vertical short-form video post.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "userPhoto": { "type": "string", "format": "url" },
+        "videoUrl": { "type": "string", "format": "url" },
+        "caption": { "type": "string" },
+        "category": { "type": "string", "description": "Content category for recommendations." },
+        "likesCount": { "type": "integer" },
+        "commentsCount": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "username", "videoUrl", "createdAt"]
+    },
+    "Follow": {
+      "title": "Follow Relationship",
+      "description": "Represents a follow relationship between two users.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "UID of the user being followed or following." },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string", "format": "url" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "timestamp"]
+    },
+    "ReelComment": {
+      "title": "Reel Comment",
+      "description": "A comment on a specific reel.",
+      "type": "object",
+      "properties": {
+        "commentId": { "type": "string" },
+        "reelId": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorPhoto": { "type": "string", "format": "url" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["commentId", "reelId", "authorId", "authorName", "text", "createdAt"]
+    },
+    "Notification": {
+      "title": "User Notification",
+      "description": "Real-time alerts for likes, comments, and follows.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "recipientId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderPhoto": { "type": "string", "format": "url" },
+        "type": { "type": "string", "enum": ["message", "like", "live", "follow", "comment"] },
+        "text": { "type": "string" },
+        "read": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "recipientId", "senderId", "senderName", "type", "text", "read", "timestamp"]
+    },
+    "ReelLike": {
+      "title": "Reel Like",
+      "description": "A record of a user liking a reel.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "timestamp"]
+    },
+    "PostLike": {
+      "title": "Post Like",
+      "description": "A record of a user liking a post.",
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["timestamp"]
+    },
+    "Report": {
+      "title": "Content Report",
+      "description": "A report submitted by a user for offending content.",
+      "type": "object",
+      "properties": {
+        "reportId": { "type": "string" },
+        "reporterId": { "type": "string" },
+        "contentId": { "type": "string", "description": "ID of the post or broadcast being reported." },
+        "contentType": { "type": "string", "enum": ["post", "broadcast", "reel", "user"] },
+        "reason": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["reportId", "reporterId", "contentId", "contentType", "reason", "timestamp"]
+    },
+    "FollowRequest": {
+      "title": "Follow Request",
+      "description": "A request to follow a private profile.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderPhoto": { "type": "string", "format": "url" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["senderId", "senderName", "timestamp"]
+    },
+    "Friend": {
+      "title": "Friendship",
+      "description": "Represents a mutual friendship between two users.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "username": { "type": "string" },
+        "photoURL": { "type": "string", "format": "url" },
+        "isVerified": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "timestamp"]
+    },
+    "FriendRequest": {
+      "title": "Friend Request",
+      "description": "A request to become friends.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderPhoto": { "type": "string", "format": "url" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "rejected"] },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["senderId", "senderName", "status", "timestamp"]
+    },
+    "BlockedUser": {
+      "title": "Blocked User",
+      "description": "A record of a user being blocked by another user.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "UID of the blocked user." },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string", "format": "url" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "timestamp"]
+    },
+    "ReelView": {
+      "title": "Reel View Record",
+      "description": "A record of a user viewing a specific reel.",
+      "type": "object",
+      "properties": {
+        "viewedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["viewedAt"]
+    },
+    "LiveReaction": {
+      "title": "Live Stream Reaction",
+      "description": "A transient reaction emoji sent during a live stream.",
+      "type": "object",
+      "properties": {
+        "emoji": { "type": "string" },
+        "senderId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["emoji", "senderId", "timestamp"]
+    },
+    "LiveViewer": {
+      "title": "Live Stream Viewer",
+      "description": "A record of a user currently viewing a live stream.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string", "format": "url" },
+        "joinedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "joinedAt"]
+    },
+    "Bookmark": {
+      "title": "Post Bookmark",
+      "description": "A record of a user bookmarking a post.",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string" },
+        "bookmarkedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["postId", "bookmarkedAt"]
+    },
+    "Call": {
+      "title": "Voice/Video Call",
+      "description": "Metadata for a voice or video call signaling and history.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "callerId": { "type": "string" },
+        "callerName": { "type": "string" },
+        "callerPhoto": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "receiverName": { "type": "string" },
+        "receiverPhoto": { "type": "string" },
+        "type": { "type": "string", "enum": ["voice", "video"] },
+        "status": { "type": "string", "enum": ["ringing", "accepted", "rejected", "ended", "missed"] },
+        "chatId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "duration": { "type": "number", "description": "Call duration in seconds" }
+      },
+      "required": ["id", "callerId", "receiverId", "type", "status", "timestamp"]
+    },
+    "TypingIndicator": {
+      "title": "Typing Indicator",
+      "description": "Transient record of a user currently typing in a chat.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "timestamp"]
+    },
+    "StickerPack": {
+      "title": "Sticker Pack",
+      "description": "A collection of stickers created by a user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "authorId": { "type": "string" },
+        "stickers": { 
+          "type": "array", 
+          "items": { "$ref": "Sticker" } 
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "authorId", "stickers", "createdAt"]
+    },
+    "Sticker": {
+      "title": "Sticker",
+      "description": "An individual sticker with an emoji and image.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "emoji": { "type": "string" },
+        "url": { "type": "string", "format": "url" }
+      },
+      "required": ["id", "emoji", "url"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": { "schema": "User", "description": "User profile documents." },
+    "/users_private/{userId}": { "schema": "PrivateUser", "description": "Sensitive user data." },
+    "/posts/{postId}": { "schema": "Post", "description": "Main feed posts." },
+    "/posts/{postId}/comments/{commentId}": { "schema": "Comment", "description": "Comments nested under posts." },
+    "/live_streams/{roomId}": { "schema": "LiveRoom", "description": "Active public live streaming sessions." },
+    "/live_streams/{roomId}/chat/{messageId}": { "schema": "Message", "description": "Chat messages in a live stream." },
+    "/live_streams/{roomId}/viewers/{viewerId}": { "schema": "LiveViewer", "description": "Users currently watching the stream." },
+    "/group_calls/{roomId}": { "schema": "LiveRoom", "description": "Active private voice/video group calls." },
+    "/group_calls/{roomId}/chat/{messageId}": { "schema": "Message", "description": "Chat messages in a group call." },
+    "/group_calls/{roomId}/participants/{userId}": { "schema": "LiveViewer", "description": "Users currently in the group call." },
+    "/live_rooms/{roomId}": { "schema": "LiveRoom", "description": "Active live streaming and group call sessions." },
+    "/chats/{chatId}": { "schema": "Chat", "description": "Direct message threads." },
+    "/chats/{chatId}/messages/{messageId}": { "schema": "Message", "description": "Messages within a chat thread." },
+    "/chats/{chatId}/typing/{userId}": { "schema": "TypingIndicator", "description": "Users currently typing in this chat." },
+    "/stories/{storyId}": { "schema": "Story", "description": "User stories." },
+    "/stories/{storyId}/views/{viewerId}": { "schema": "StoryView", "description": "View records for a story." },
+    "/reels/{reelId}": { "schema": "Reel", "description": "Short-form vertical videos." },
+    "/reels/{reelId}/comments/{commentId}": { "schema": "ReelComment", "description": "Comments on a reel." },
+    "/reels/{reelId}/likes/{userId}": { "schema": "ReelLike", "description": "Likes on a reel." },
+    "/users/{userId}/reelLikes/{reelId}": { "schema": "ReelLike", "description": "Reels liked by this user." },
+    "/users/{userId}/postLikes/{postId}": { "schema": "PostLike", "description": "Posts liked by this user." },
+    "/users/{userId}/bookmarks/{postId}": { "schema": "Bookmark", "description": "Posts bookmarked by this user." },
+    "/users/{userId}/following/{followedId}": { "schema": "Follow", "description": "Users followed by this user." },
+    "/users/{userId}/followers/{followerId}": { "schema": "Follow", "description": "Users following this user." },
+    "/users/{userId}/followRequests/{senderId}": { "schema": "FollowRequest", "description": "Pending follow requests for private profiles." },
+    "/users/{userId}/blockedUsers/{blockedUserId}": { "schema": "BlockedUser", "description": "Users blocked by this user." },
+    "/users/{userId}/viewedReels/{reelId}": { "schema": "ReelView", "description": "Reels viewed by this user." },
+    "/users/{userId}/live_subscriptions/{hostId}": { "schema": "Follow", "description": "Live stream subscriptions for this user." },
+    "/users/{userId}/live_subscribers/{subscriberId}": { "schema": "Follow", "description": "Users subscribed to this user's live streams." },
+    "/users/{userId}/friends/{friendId}": { "schema": "Friend", "description": "Users who are friends with this user." },
+    "/users/{userId}/friendRequests/{senderId}": { "schema": "FriendRequest", "description": "Pending friend requests for this user." },
+    "/reports/{reportId}": { "schema": "Report", "description": "User-submitted reports for content moderation." },
+    "/notifications/{notificationId}": { "schema": "Notification", "description": "User notifications." },
+    "/calls/{callId}": { "schema": "Call", "description": "Call signaling and history." },
+    "/sticker_packs/{packId}": { "schema": "StickerPack", "description": "Shared sticker sets." }
+  }
+}

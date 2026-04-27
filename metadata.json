@@ -1,0 +1,10 @@
+{
+  "name": "TruCast",
+  "description": "A comprehensive social media platform architecture including live streaming, posts, and instant messaging.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "display-capture",
+    "geolocation"
+  ]
+}
