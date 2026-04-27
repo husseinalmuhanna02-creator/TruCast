@@ -1,4 +1,4 @@
-name: TruCast SHA-1 Final Success
+name: TruCast Final Release
 on: [push]
 jobs:
   build:
@@ -12,31 +12,30 @@ jobs:
 
       - name: 1. Install & Build Web
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor-firebase/authentication --legacy-peer-deps
+          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor-firebase/authentication --legacy-peer-deps
+          npm install --legacy-peer-deps
           npm run build
 
-      - name: 2. Extract SHA-1 (DIRECT ACCESS)
+      - name: 2. Setup Android
         run: |
-          echo "--- YOUR SHA-1 KEY IS BELOW ---"
-          # استخراج البصمة مباشرة من مفتاح أندرويد الافتراضي في السيرفر
-          keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android | grep "SHA1:"
-          echo "-------------------------------"
-
-      - name: 3. Create Android & Sync
-        run: |
+          rm -rf android
           echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist","plugins":{"FirebaseAuthentication":{"skipNativeAuth":false,"providers":["google.com"]}}}' > capacitor.config.json
-          npx cap add android || true
+          npx cap add android
           npx cap sync android
+
+      - name: 3. Extract SHA-1 (The Official Report)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew signingReport | grep -A 20 "Variant: debug" || true
 
       - name: 4. Build Final APK
         run: |
           cd android
-          cp ../google-services.json app/google-services.json || echo "Warning: JSON missing"
-          echo "subprojects { configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22' } } } " >> build.gradle
-          chmod +x gradlew
+          cp ../google-services.json app/google-services.json || echo "JSON Missing"
           ./gradlew assembleDebug
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-With-SHA1-Ready
+          name: TruCast-Complete-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk

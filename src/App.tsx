@@ -12751,7 +12751,7 @@ function AppContent() {
       const provider = providerName === 'google' 
         ? new GoogleAuthProvider() 
         : new FacebookAuthProvider();
-      const googleResult = await FirebaseAuthentication.signInWithGoogle();
+      const googleResult = await FirebaseAuthentication.signInWithGoogle({ webClientId: "160134519481-07ihbunqgjkiusa1hpbtrb9nlhvsb6ar.apps.googleusercontent.com" });
     const googleCredential = GoogleAuthProvider.credential(googleResult.credential?.idToken);
     await signInWithCredential(auth, googleCredential);
     } catch (err: any) {
