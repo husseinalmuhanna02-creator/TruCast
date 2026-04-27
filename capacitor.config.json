@@ -1,1 +1,11 @@
-{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist"}
+{
+  "appId": "com.hussein.trucast",
+  "appName": "TruCast",
+  "webDir": "dist",
+  "plugins": {
+    "FirebaseAuthentication": {
+      "skipNativeAuth": false,
+      "providers": ["google.com"]
+    }
+  }
+}

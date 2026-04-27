@@ -22,7 +22,7 @@ jobs:
         run: |
           # مسح أي مجلد أندرويد قديم لضمان بناء نظيف
           rm -rf android
-          echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist"}' > capacitor.config.json
+          echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"dist","plugins":{"FirebaseAuthentication":{"skipNativeAuth":false,"providers":["google.com"]}}}' > capacitor.config.json
           # إضافة الأندرويد من جديد وبقوة
           npx cap add android
           npx cap sync android
