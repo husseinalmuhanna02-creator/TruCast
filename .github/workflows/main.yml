@@ -20,24 +20,34 @@ jobs:
       - name: Build Web Project
         run: |
           npm install
-          # إصلاح Vite لقتل الشاشة البيضاء
+          # إصلاح Vite للمسارات النسبية
           if [ -f "vite.config.js" ]; then
             sed -i "s|defineConfig({|defineConfig({ base: './',|g" vite.config.js
           fi
           npm run build
+          
+          # التأكد من وجود ملفات الويب (هنا السر!)
+          if [ ! -d "dist" ] && [ -d "build" ]; then mv build dist; fi
+          if [ ! -f "dist/index.html" ]; then echo "Error: Web files not found!" && exit 1; fi
+          
+          # عرض حجم المجلد للتأكد (سيظهر في السجلات)
+          du -sh dist/
 
-      - name: Setup Capacitor
+      - name: Setup Capacitor and Force Sync
         run: |
           npm install @capacitor/cli @capacitor/core @capacitor/android
           if [ ! -d "android" ]; then
             npx cap init TruCast com.hussein.trucast --web-dir dist
             npx cap add android
           fi
+          
+          # إجبار التزامن ونسخ الملفات يدوياً لمجلد الأصول في الأندرويد
           npx cap sync android
+          mkdir -p android/app/src/main/assets/public
+          cp -r dist/* android/app/src/main/assets/public/
 
       - name: Nuclear Fix for Kotlin Conflict
         run: |
-          # هذا الأمر يدخل لعمق إعدادات الأندرويد ويحذف المجموعات المتصارعة
           cat << 'GRADLE' >> android/build.gradle
           subprojects {
               configurations.all {
@@ -58,5 +68,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: TruCast-Final-V4
+          name: TruCast-Real-Size-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
