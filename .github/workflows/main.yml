@@ -17,34 +17,43 @@ jobs:
         with:
           node-version: 20
 
-      - name: Build Web Project
+      - name: Hard Build Web Project
         run: |
           npm install
-          # إصلاح Vite للمسارات النسبية
+          # إجبار Vite على المسارات النسبية (قاتل الشاشة البيضاء)
           if [ -f "vite.config.js" ]; then
             sed -i "s|defineConfig({|defineConfig({ base: './',|g" vite.config.js
           fi
           npm run build
           
-          # التأكد من وجود ملفات الويب (هنا السر!)
-          if [ ! -d "dist" ] && [ -d "build" ]; then mv build dist; fi
-          if [ ! -f "dist/index.html" ]; then echo "Error: Web files not found!" && exit 1; fi
+          # فحص المجلد الناتج (هنا سنعرف الحقيقة)
+          if [ -d "dist" ]; then export WEB_DIR="dist";
+          elif [ -d "build" ]; then export WEB_DIR="build";
+          else export WEB_DIR="www"; fi
           
-          # عرض حجم المجلد للتأكد (سيظهر في السجلات)
-          du -sh dist/
+          echo "WEB_DIR_FOUND=$WEB_DIR" >> $GITHUB_ENV
+          du -sh $WEB_DIR/
 
-      - name: Setup Capacitor and Force Sync
+      - name: Force Sync and Manual Injection
         run: |
           npm install @capacitor/cli @capacitor/core @capacitor/android
+          # تحديث إعدادات كاباسيتور لتشير للمجلد الصحيح
+          sed -i 's/"webDir": ".*"/"webDir": "'$WEB_DIR_FOUND'"/g' capacitor.config.json || echo '{"appId":"com.hussein.trucast","appName":"TruCast","webDir":"'$WEB_DIR_FOUND'"}' > capacitor.config.json
+          
+          # إذا لم يكن مجلد أندرويد موجوداً، أنشئه
           if [ ! -d "android" ]; then
-            npx cap init TruCast com.hussein.trucast --web-dir dist
+            npx cap init TruCast com.hussein.trucast --web-dir $WEB_DIR_FOUND
             npx cap add android
           fi
           
-          # إجبار التزامن ونسخ الملفات يدوياً لمجلد الأصول في الأندرويد
           npx cap sync android
+          
+          # --- العملية الجراحية: نسخ الملفات يدوياً لمجلد الأصول بالأندرويد ---
           mkdir -p android/app/src/main/assets/public
-          cp -r dist/* android/app/src/main/assets/public/
+          cp -r $WEB_DIR_FOUND/* android/app/src/main/assets/public/
+          
+          # التأكد من حجم مجلد الأصول داخل الأندرويد
+          du -sh android/app/src/main/assets/public/
 
       - name: Nuclear Fix for Kotlin Conflict
         run: |
@@ -61,12 +70,12 @@ jobs:
           GRADLE
           chmod +x android/gradlew
 
-      - name: Build Android APK
+      - name: Build Final APK
         run: |
           cd android && ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: TruCast-Real-Size-APK
+          name: TruCast-Final-V5-RealSize
           path: android/app/build/outputs/apk/debug/app-debug.apk
