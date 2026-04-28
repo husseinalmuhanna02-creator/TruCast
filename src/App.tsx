@@ -12745,29 +12745,11 @@ function AppContent() {
     fetchBookmarks();
   }, [user?.uid, profileTab, quotaExceeded]);
 
-  const handleLogin = async (providerName: 'google' | 'facebook' = 'google') => {
-    setAuthError("");
-    try {
-      const provider = providerName === 'google' 
-        ? new GoogleAuthProvider() 
-        : new FacebookAuthProvider();
-      const googleResult = await FirebaseAuthentication.signInWithGoogle({ webClientId: "160134519481-07ihbunqgjkiusa1hpbtrb9nlhvsb6ar.apps.googleusercontent.com" });
-    const googleCredential = GoogleAuthProvider.credential(googleResult.credential?.idToken);
-    await signInWithCredential(auth, googleCredential);
-    } catch (err: any) {
-      if (err.code === 'auth/unauthorized-domain') {
-        const domainMsg = language === 'ar' 
-          ? `نطاق غير مصرح به: يرجى إضافة النطاق التالي في إعدادات Firebase Authentication:\n${window.location.hostname}`
-          : `Unauthorized domain: Please add this domain to your Firebase Authentication settings:\n${window.location.hostname}`;
-        setAuthError(domainMsg);
-      } else if (err.code === 'auth/account-exists-with-different-credential') {
-        const emailMsg = language === 'ar'
-          ? "يوجد حساب بالفعل بهذا البريد الإلكتروني ولكن مع مزود خدمة مختلف. يرجى تسجيل الدخول باستخدام المزود الصحيح."
-          : "An account already exists with this email but with a different provider. Please login using the correct provider.";
-        setAuthError(emailMsg);
-      } else {
-        setAuthError(err.message);
-      }
+  const handleLogin = (provider: string) => {
+    if (provider === "facebook") {
+      signInWithFacebook();
+    } else {
+      signInWithGoogle();
     }
   };
 
@@ -17072,3 +17054,5 @@ export default function App() {
   );
 }
 // Build Version 62 - SHA-256 Fixed
+
+// Final Fix for Facebook Auth
