@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "160134519481-1s6ndi5m7u4b2990on2taep9n4eqit0r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hussein.trucast",
+            "certificate_hash": "e5afed34e9512228900bc2d1580fca6a1e077bc8"
+          }
+        },
+        {
           "client_id": "160134519481-nnlgpm3acp625leiutvgksj8kpt3jju6.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
