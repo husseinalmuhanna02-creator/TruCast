@@ -6,7 +6,8 @@
     "FirebaseAuthentication": {
       "skipNativeAuth": false,
       "providers": [
-        "google.com"
+        "google.com",
+        "facebook.com"
       ],
       "googleWebClientId": "160134519481-07ihbunqgjkiusa1hpbtrb9nlhvsb6ar.apps.googleusercontent.com"
     }
