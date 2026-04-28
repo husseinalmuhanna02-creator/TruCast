@@ -12745,7 +12745,8 @@ function AppContent() {
     fetchBookmarks();
   }, [user?.uid, profileTab, quotaExceeded]);
 
-    const handleLogin = async (provider: string) => {
+      const handleLogin = async (provider: string) => {
+    alert('بدأ الدخول بواسطة: ' + provider); // تنبيه للتأكد من أن الزر يعمل
     try {
       if (provider === "facebook") {
         await signInWithFacebook();
@@ -12754,6 +12755,7 @@ function AppContent() {
       }
     } catch (error) {
       console.error("Login Error:", error);
+      alert("خطأ في الدخول: " + error.message);
     }
   };
 
