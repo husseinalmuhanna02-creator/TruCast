@@ -12745,11 +12745,15 @@ function AppContent() {
     fetchBookmarks();
   }, [user?.uid, profileTab, quotaExceeded]);
 
-  const handleLogin = (provider: string) => {
-    if (provider === "facebook") {
-      signInWithFacebook();
-    } else {
-      signInWithGoogle();
+    const handleLogin = async (provider: string) => {
+    try {
+      if (provider === "facebook") {
+        await signInWithFacebook();
+      } else {
+        await signInWithGoogle();
+      }
+    } catch (error) {
+      console.error("Login Error:", error);
     }
   };
 
@@ -17056,3 +17060,4 @@ export default function App() {
 // Build Version 62 - SHA-256 Fixed
 
 // Final Fix for Facebook Auth
+// Code Restored and Fixed 🚀
