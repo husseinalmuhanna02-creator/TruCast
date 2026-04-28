@@ -10,13 +10,17 @@ jobs:
       - uses: actions/setup-java@v4
         with: { java-version: '21', distribution: 'temurin' }
 
-      - name: 1. Build & Sync
+      - name: 1. Build & Clean Sync
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor-firebase/authentication --legacy-peer-deps
           npm run build
+          # حذف المجلد القديم إذا وجد لضمان عدم توقف البناء
+          rm -rf android
           npx cap add android
           npx cap sync android
-          cp google-services.json android/app/google-services.json
+          if [ -f "google-services.json" ]; then
+            cp google-services.json android/app/google-services.json
+          fi
 
       - name: 2. Reveal Secret SHA Keys 🔑
         run: |
@@ -31,5 +35,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-V65
+          name: TruCast-V66
           path: android/app/build/outputs/apk/debug/app-debug.apk
