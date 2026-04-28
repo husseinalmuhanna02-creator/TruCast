@@ -1,3 +1,4 @@
+import { signInWithGoogle, signInWithFacebook } from './firebase';
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import * as React from 'react';
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -12745,8 +12746,7 @@ function AppContent() {
     fetchBookmarks();
   }, [user?.uid, profileTab, quotaExceeded]);
 
-      const handleLogin = async (provider: string) => {
-    alert('بدأ الدخول بواسطة: ' + provider); // تنبيه للتأكد من أن الزر يعمل
+        const handleLogin = async (provider: string) => {
     try {
       if (provider === "facebook") {
         await signInWithFacebook();
@@ -12755,7 +12755,7 @@ function AppContent() {
       }
     } catch (error) {
       console.error("Login Error:", error);
-      alert("خطأ في الدخول: " + error.message);
+      alert("حدث خطأ: " + error.message);
     }
   };
 
