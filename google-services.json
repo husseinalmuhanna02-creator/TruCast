@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "160134519481-5vidvc24h6dlg1dkudid1jbje2bsm205.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hussein.trucast",
+            "certificate_hash": "6c8b25de6ef37293fdbccec3ac7f8448d7aabc09"
+          }
+        },
+        {
           "client_id": "160134519481-nnlgpm3acp625leiutvgksj8kpt3jju6.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
