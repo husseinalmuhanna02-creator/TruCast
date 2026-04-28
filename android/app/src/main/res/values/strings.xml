@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TruCast</string>
+    <string name="title_activity_main">TruCast</string>
+    <string name="package_name">com.hussein.trucast</string>
+    <string name="custom_url_scheme">com.hussein.trucast</string>
+    <string name="facebook_app_id">651268487401170</string>
+    <string name="fb_login_protocol_scheme">fb651268487401170</string>
+    <string name="facebook_client_token">55452f1437146522c0032906ec14337b</string>
+</resources>
