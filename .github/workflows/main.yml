@@ -14,7 +14,6 @@ jobs:
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor-firebase/authentication --legacy-peer-deps
           npm run build
-          # حذف المجلد القديم إذا وجد لضمان عدم توقف البناء
           rm -rf android
           npx cap add android
           npx cap sync android
@@ -22,8 +21,12 @@ jobs:
             cp google-services.json android/app/google-services.json
           fi
 
-      - name: 2. Reveal Secret SHA Keys 🔑
+      - name: 2. Generate Keystore & Reveal SHA Keys 🔑
         run: |
+          # صنع مجلد المفاتيح إذا لم يكن موجوداً
+          mkdir -p /home/runner/.config/.android
+          # إنشاء مفتاح تجريبي للسيرفر لكي يظهر لنا الأكواد
+          keytool -genkey -v -keystore /home/runner/.config/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           cd android
           chmod +x gradlew
           ./gradlew signingReport
@@ -35,5 +38,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TruCast-V66
+          name: TruCast-V67
           path: android/app/build/outputs/apk/debug/app-debug.apk
