@@ -1,15 +1,15 @@
 {
-  "appId": "com.hussein.trucast",
+  "appId": "io.ionic.starter",
   "appName": "TruCast",
   "webDir": "dist",
+  "bundledWebRuntime": false,
   "plugins": {
     "FirebaseAuthentication": {
       "skipNativeAuth": false,
       "providers": [
         "google.com",
         "facebook.com"
-      ],
-      "googleWebClientId": "160134519481-07ihbunqgjkiusa1hpbtrb9nlhvsb6ar.apps.googleusercontent.com"
+      ]
     }
   }
 }
