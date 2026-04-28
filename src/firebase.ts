@@ -1,3 +1,4 @@
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { initializeFirestore, memoryLocalCache } from 'firebase/firestore';
@@ -15,3 +16,11 @@ export const db = initializeFirestore(app, {
   localCache: memoryLocalCache(),
 }, databaseId);
 export const auth = getAuth(app);
+
+export const signInWithGoogle = async () => {
+  return await FirebaseAuthentication.signInWithGoogle();
+};
+
+export const signInWithFacebook = async () => {
+  return await FirebaseAuthentication.signInWithFacebook();
+};
